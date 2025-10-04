@@ -11,12 +11,15 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.50.0",
+    "@clerk/clerk-sdk-node": "^4.13.23",
     "@stripe/stripe-js": "^8.0.0",
     "autoprefixer": "^10.4.21",
     "lucide-react": "^0.544.0",
+    "micro": "^10.0.1",
     "postcss": "^8.5.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "stripe": "^19.1.0",
     "tailwindcss": "^3.4.18"
   },
   "devDependencies": {

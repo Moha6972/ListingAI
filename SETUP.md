@@ -49,15 +49,26 @@ VITE_ANTHROPIC_API_KEY=sk-ant-your_key_here
 
 ### 5. Configure Stripe Payments
 
-1. Create account at [stripe.com](https://stripe.com)
-2. Create Product:
+#### Create Products:
+
+1. Go to [stripe.com](https://stripe.com) → Products
+2. **Create Product 1: Unlimited Plan**
    - Name: "Unlimited Listings Plan"
    - Price: $79/month
    - Recurring: Monthly
-3. Get Publishable Key from Developers → API Keys
-4. Copy to `.env.local`
+   - Copy the **Price ID** (starts with `price_`)
+3. **Create Product 2: Single Listing**
+   - Name: "Pay As You Go - Single Listing"
+   - Price: $29
+   - One-time payment
+   - Copy the **Price ID** (starts with `price_`)
 
-**For production:** Set up webhook to update `user.publicMetadata.isPaid = true` after successful payment.
+#### Get API Keys:
+
+1. Go to Developers → API Keys
+2. Copy **Publishable Key** (pk_test_...)
+3. Copy **Secret Key** (sk_test_...) - **Keep this secure!**
+4. Add all keys to Vercel environment variables (see deployment section below)
 
 ### 6. Get Anthropic API Key
 

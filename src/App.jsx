@@ -123,26 +123,44 @@ Priced at $${formData.price}, this is an exceptional opportunity to own a piece 
     }
   };
 
-  const handleUpgrade = async () => {
-    const stripe = getStripe();
-
-    if (!stripe) {
-      alert(`STRIPE SETUP REQUIRED:
-
-1. Create Stripe account at stripe.com
-2. Create a "Subscription" product for $79/month
-3. Get your Stripe Publishable Key
-4. Add VITE_STRIPE_PUBLISHABLE_KEY to .env.local
-5. Set up a checkout session or payment link
-
-For now, this is demo mode. In production, this would redirect to Stripe Checkout.
-
-After successful payment, update user.publicMetadata.isPaid = true`);
+  const handleUpgrade = async (planType = 'unlimited') => {
+    if (!user) {
+      alert('Please sign in to upgrade');
       return;
     }
 
-    // In production, redirect to Stripe Checkout
-    alert('Stripe integration ready! Create checkout session on your backend.');
+    try {
+      // Get Stripe price IDs from environment variables
+      const priceId = planType === 'unlimited'
+        ? import.meta.env.VITE_STRIPE_PRICE_ID_UNLIMITED
+        : import.meta.env.VITE_STRIPE_PRICE_ID_SINGLE;
+
+      const mode = planType === 'unlimited' ? 'subscription' : 'payment';
+
+      if (!priceId) {
+        alert(`Please add VITE_STRIPE_PRICE_ID_${planType === 'unlimited' ? 'UNLIMITED' : 'SINGLE'} to your environment variables`);
+        return;
+      }
+
+      // Create checkout session via API
+      const response = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          priceId: priceId,
+          mode: mode,
+        }),
+      });
+
+      const { url } = await response.json();
+
+      // Redirect to Stripe Checkout
+      window.location.href = url;
+    } catch (error) {
+      console.error('Upgrade error:', error);
+      alert('Failed to start checkout. Please try again.');
+    }
   };
 
   if (!isLoaded) {
