@@ -44,61 +44,23 @@ function AppContent() {
   };
 
   const handleGenerate = async (formData) => {
-    const prompt = `Write a compelling real estate listing description for the following property. Make it engaging, highlight key selling points, and optimize for MLS platforms. Use vivid language but stay professional.
-
-Property Details:
-- Type: ${formData.propertyType}
-- Address: ${formData.address}
-- Price: $${formData.price}
-- Bedrooms: ${formData.bedrooms}
-- Bathrooms: ${formData.bathrooms}
-- Square Footage: ${formData.sqft} sq ft
-- Year Built: ${formData.yearBuilt || 'N/A'}
-- Lot Size: ${formData.lotSize || 'N/A'}
-- Key Features: ${formData.features || 'N/A'}
-- Neighborhood: ${formData.neighborhood || 'N/A'}
-- School District: ${formData.schoolDistrict || 'N/A'}
-
-Write a compelling 150-250 word listing description that will attract buyers. Start with an attention-grabbing opening line. Focus on lifestyle and benefits, not just specs.`;
-
     try {
-      if (!ANTHROPIC_API_KEY || ANTHROPIC_API_KEY === 'YOUR_ANTHROPIC_KEY') {
-        // Fallback to demo mode
-        setListing(`Welcome to this stunning ${formData.propertyType} located at ${formData.address}!
+      // Call serverless function instead of Anthropic directly
+      const response = await fetch('/api/generate-listing', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ formData }),
+      });
 
-This exceptional ${formData.bedrooms}-bedroom, ${formData.bathrooms}-bathroom residence offers ${formData.sqft} square feet of meticulously designed living space. ${formData.yearBuilt ? `Built in ${formData.yearBuilt},` : ''} this home combines modern elegance with timeless appeal.
-
-${formData.features ? `Premium features include ${formData.features}.` : ''} The property sits on ${formData.lotSize || 'a well-maintained lot'}, offering the perfect blend of privacy and community.
-
-${formData.neighborhood ? `Located in the highly sought-after ${formData.neighborhood} area,` : ''} this home provides easy access to shopping, dining, and entertainment. ${formData.schoolDistrict ? `Families will appreciate being in the ${formData.schoolDistrict}.` : ''}
-
-Priced at $${formData.price}, this is an exceptional opportunity to own a piece of paradise. Schedule your private showing today and experience the lifestyle you've been dreaming of!
-
-[DEMO MODE: Using fallback listing. Add VITE_ANTHROPIC_API_KEY to .env.local for AI-generated listings]`);
-      } else {
-        const response = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": ANTHROPIC_API_KEY,
-            "anthropic-version": "2023-06-01"
-          },
-          body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 1000,
-            messages: [
-              { role: "user", content: prompt }
-            ]
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('API request failed');
-        }
-
-        const data = await response.json();
-        setListing(data.content[0].text);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Generation failed');
       }
+
+      const data = await response.json();
+      setListing(data.listing);
 
       // Deduct credit if not paid
       if (!isPaid) {
