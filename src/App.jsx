@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { ClerkProvider } from './lib/clerk';
 import { getStripe } from './lib/stripe';
@@ -20,11 +20,35 @@ function AppContent() {
   const [isPaid, setIsPaid] = useState(false);
 
   // Initialize user credits from metadata
-  useState(() => {
-    if (user) {
-      setUserCredits(user.publicMetadata?.credits || 3);
-      setIsPaid(user.publicMetadata?.isPaid || false);
-    }
+  useEffect(() => {
+    const initializeUser = async () => {
+      if (user) {
+        const credits = user.publicMetadata?.credits;
+        const paid = user.publicMetadata?.isPaid;
+
+        // If new user (no metadata set), initialize with 3 credits
+        if (credits === undefined && paid === undefined) {
+          try {
+            await user.update({
+              publicMetadata: {
+                credits: 3,
+                isPaid: false
+              }
+            });
+            setUserCredits(3);
+            setIsPaid(false);
+          } catch (error) {
+            console.error('Failed to initialize user metadata:', error);
+          }
+        } else {
+          // Load existing metadata
+          setUserCredits(credits ?? 3);
+          setIsPaid(paid ?? false);
+        }
+      }
+    };
+
+    initializeUser();
   }, [user]);
 
   const handleGetStarted = () => {
