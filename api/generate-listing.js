@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const prompt = `You are an expert real estate copywriter who creates MLS-optimized listings that sell properties faster. Write a compelling, professional listing description that makes buyers want to schedule a showing immediately.
+  const prompt = `You are a top-tier real estate copywriter with 15+ years of experience. Your listings sell 40% faster than average because you master emotional storytelling and buyer psychology. Write a premium, MLS-optimized description that commands attention and drives immediate showings.
 
 Property Details:
 - Type: ${formData.propertyType}
@@ -33,16 +33,58 @@ Property Details:
 - Neighborhood: ${formData.neighborhood || 'N/A'}
 - School District: ${formData.schoolDistrict || 'N/A'}
 
-Requirements:
-1. Start with a powerful, attention-grabbing opening line that creates emotion
-2. Focus on lifestyle benefits and the buyer's future experience, not just features
-3. Use vivid, sensory language that helps buyers visualize living there
-4. Include a strong call-to-action at the end
-5. Keep it 150-250 words
-6. Write in an enthusiastic but professional tone
-7. Avoid clichés like "dream home" or "one of a kind" - be specific and unique
+CRITICAL REQUIREMENTS - Follow exactly:
 
-Write the listing description now:`;
+1. OPENING (First sentence): Create instant desire using "Imagine..." or paint a vivid scene. Make buyers FEEL the lifestyle immediately.
+
+2. STORY FLOW: Structure as a visual journey through the home:
+   - Exterior/arrival experience (curb appeal, first impressions)
+   - Main living areas (entertaining, daily life scenes)
+   - Private spaces (bedrooms, bathrooms - create sanctuary feeling)
+   - Outdoor/special features (lifestyle benefits)
+
+3. POWER WORDS: Use these emotions:
+   - Luxury tier: "sophisticated," "curated," "elevated," "refined," "bespoke"
+   - Family tier: "welcoming," "spacious," "bright," "flowing," "practical"
+   - Modern tier: "sleek," "contemporary," "updated," "stylish," "pristine"
+
+4. SENSORY DETAILS: Include at least 3:
+   - Visual: "sun-drenched," "soaring ceilings," "gleaming hardwood"
+   - Tactile: "plush carpet," "cool marble," "warm wood"
+   - Spatial: "expansive," "intimate," "airy," "cozy"
+
+5. BUYER PSYCHOLOGY:
+   - Paint specific lifestyle scenes (e.g., "Sunday morning coffee on the deck overlooking...")
+   - Use "you" and "your" to create ownership mentality
+   - Highlight unique value propositions (what competitors lack)
+
+6. STRUCTURE:
+   - 200-280 words (longer = more premium feel)
+   - 3-4 paragraphs
+   - Each paragraph has a purpose (hook → tour → lifestyle → urgency)
+
+7. CLOSING: Create FOMO with scarcity/urgency:
+   - Reference market conditions, location desirability, or unique features
+   - End with compelling call-to-action
+   - Example: "Properties like this in [neighborhood] rarely last - schedule your private showing today."
+
+8. ABSOLUTE BANS:
+   - ❌ "Dream home," "must see," "don't miss," "won't last"
+   - ❌ Generic phrases: "great location," "perfect for," "tons of"
+   - ❌ Listing obvious things without adding value
+   - ❌ Passive voice or weak verbs
+
+9. PREMIUM UPGRADES vs STANDARD HOMES:
+   - If price > $500k: Use sophisticated language, emphasize luxury/investment value
+   - If price < $300k: Focus on value, practical benefits, family lifestyle
+   - Always position as the BEST choice in this price range
+
+10. NEIGHBORHOOD INTEGRATION:
+   - Research the actual neighborhood and reference real landmarks/features
+   - Mention lifestyle amenities within 5-10 minutes
+   - Create local expertise credibility
+
+Write the premium listing description now. Make it so compelling that buyers call within 30 minutes of reading:`;
 
   try {
     console.log('Starting Anthropic API call...');
