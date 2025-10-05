@@ -160,42 +160,49 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
           <p className="text-slate-400 text-lg">No contracts. Cancel anytime.</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {/* Free Plan */}
           <div className="p-8 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-            <div className="text-sm font-semibold text-indigo-400 mb-2">PAY AS YOU GO</div>
-            <div className="text-5xl font-bold mb-6">$29<span className="text-2xl text-slate-400">/listing</span></div>
+            <div className="text-sm font-semibold text-slate-400 mb-2">FREE FOREVER</div>
+            <div className="text-5xl font-bold mb-2">$0<span className="text-2xl text-slate-400">/month</span></div>
+            <div className="text-sm text-slate-400 mb-6">Perfect to get started</div>
             <ul className="space-y-4 mb-8">
               {[
-                'Single listing generation',
-                'Full property details',
-                'Instant copy-paste',
-                'MLS optimized'
+                '3 listings per month',
+                'Premium AI quality',
+                'MLS optimized',
+                'Copy-to-clipboard',
+                'No credit card required'
               ].map((feature, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-indigo-400 flex-shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
                   <span className="text-slate-300">{feature}</span>
                 </li>
               ))}
             </ul>
-            <button className="w-full py-3 rounded-xl border border-white/20 hover:bg-white/10 transition-all font-semibold">
-              Get Started
+            <button
+              onClick={onGetStarted}
+              className="w-full py-3 rounded-xl border border-white/20 hover:bg-white/10 transition-all font-semibold"
+            >
+              Start Free
             </button>
           </div>
 
+          {/* Professional Plan */}
           <div className="p-8 rounded-2xl bg-gradient-to-br from-indigo-600/20 to-purple-600/20 border-2 border-indigo-500/50 backdrop-blur-sm relative">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-sm font-bold">
               MOST POPULAR
             </div>
-            <div className="text-sm font-semibold text-indigo-400 mb-2">UNLIMITED</div>
-            <div className="text-5xl font-bold mb-2">$79<span className="text-2xl text-slate-400">/month</span></div>
-            <div className="text-sm text-slate-400 mb-6">Only $3.95 per listing at 20/mo</div>
+            <div className="text-sm font-semibold text-indigo-400 mb-2">PROFESSIONAL</div>
+            <div className="text-5xl font-bold mb-2">$19<span className="text-2xl text-slate-400">/month</span></div>
+            <div className="text-sm text-slate-400 mb-6">Just $0.76 per listing</div>
             <ul className="space-y-4 mb-8">
               {[
-                'Unlimited listings',
-                'Priority support',
-                'Advanced customization',
-                'Early access to new features',
-                'Cancel anytime'
+                '25 listings per month',
+                'Multiple variations',
+                'SEO optimization',
+                'Listing history',
+                'Priority support'
               ].map((feature, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-indigo-400 flex-shrink-0 mt-0.5" />
@@ -206,6 +213,33 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
             <button
               onClick={onGetStarted}
               className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all font-semibold shadow-xl"
+            >
+              Start Free Trial
+            </button>
+          </div>
+
+          {/* Agency Plan */}
+          <div className="p-8 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+            <div className="text-sm font-semibold text-purple-400 mb-2">AGENCY</div>
+            <div className="text-5xl font-bold mb-2">$39<span className="text-2xl text-slate-400">/month</span></div>
+            <div className="text-sm text-slate-400 mb-6">For teams & brokers</div>
+            <ul className="space-y-4 mb-8">
+              {[
+                'Unlimited listings',
+                'Team access (5 agents)',
+                'Custom branding',
+                'API access',
+                'Dedicated support'
+              ].map((feature, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-slate-300">{feature}</span>
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={onGetStarted}
+              className="w-full py-3 rounded-xl border border-purple-500/50 hover:bg-purple-500/10 transition-all font-semibold"
             >
               Start Free Trial
             </button>
