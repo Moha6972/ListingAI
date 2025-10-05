@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const ANTHROPIC_API_KEY = process.env.VITE_ANTHROPIC_API_KEY;
+  const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
   if (!ANTHROPIC_API_KEY || ANTHROPIC_API_KEY === 'YOUR_ANTHROPIC_KEY') {
     res.status(500).json({ error: 'Anthropic API key not configured' });
