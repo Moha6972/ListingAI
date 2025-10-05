@@ -6,6 +6,7 @@ import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
 import ListingForm from './components/ListingForm';
 import ResultsPage from './components/ResultsPage';
+import PricingPage from './components/PricingPage';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY;
@@ -122,7 +123,12 @@ function AppContent() {
     }
   };
 
-  const handleUpgrade = async (planType = 'unlimited') => {
+  const handleUpgrade = () => {
+    // Navigate to pricing page
+    setView('pricing');
+  };
+
+  const handleSelectPlan = async (planType) => {
     if (!user) {
       alert('Please sign in to upgrade');
       return;
@@ -130,14 +136,12 @@ function AppContent() {
 
     try {
       // Get Stripe price IDs from environment variables
-      const priceId = planType === 'unlimited'
-        ? import.meta.env.VITE_STRIPE_PRICE_ID_UNLIMITED
-        : import.meta.env.VITE_STRIPE_PRICE_ID_SINGLE;
-
-      const mode = planType === 'unlimited' ? 'subscription' : 'payment';
+      const priceId = planType === 'professional'
+        ? import.meta.env.VITE_STRIPE_PRICE_ID_PROFESSIONAL
+        : import.meta.env.VITE_STRIPE_PRICE_ID_AGENCY;
 
       if (!priceId) {
-        alert(`Please add VITE_STRIPE_PRICE_ID_${planType === 'unlimited' ? 'UNLIMITED' : 'SINGLE'} to your environment variables`);
+        alert(`Please add VITE_STRIPE_PRICE_ID_${planType.toUpperCase()} to your environment variables`);
         return;
       }
 
@@ -148,7 +152,7 @@ function AppContent() {
         body: JSON.stringify({
           userId: user.id,
           priceId: priceId,
-          mode: mode,
+          mode: 'subscription',
         }),
       });
 
@@ -178,6 +182,16 @@ function AppContent() {
       credits: userCredits,
       isPaid: isPaid
     };
+
+    if (view === 'pricing') {
+      return (
+        <PricingPage
+          user={currentUser}
+          onBack={() => setView('app')}
+          onSelectPlan={handleSelectPlan}
+        />
+      );
+    }
 
     if (view === 'results') {
       return (
