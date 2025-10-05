@@ -45,6 +45,7 @@ function AppContent() {
 
   const handleGenerate = async (formData) => {
     try {
+      console.log('Calling API...');
       // Call serverless function instead of Anthropic directly
       const response = await fetch('/api/generate-listing', {
         method: 'POST',
@@ -54,34 +55,46 @@ function AppContent() {
         body: JSON.stringify({ formData }),
       });
 
+      console.log('API response status:', response.status);
+
       if (!response.ok) {
         const error = await response.json();
+        console.error('API error response:', error);
         throw new Error(error.error || 'Generation failed');
       }
 
       const data = await response.json();
+      console.log('API success, listing received');
       setListing(data.listing);
 
       // Deduct credit if not paid
       if (!isPaid) {
+        console.log('Deducting credit...');
         const newCredits = userCredits - 1;
         setUserCredits(newCredits);
 
         // Update Clerk user metadata
         if (user) {
-          await user.update({
-            publicMetadata: {
-              credits: newCredits,
-              isPaid: false
-            }
-          });
+          try {
+            await user.update({
+              publicMetadata: {
+                credits: newCredits,
+                isPaid: false
+              }
+            });
+            console.log('Clerk metadata updated');
+          } catch (clerkError) {
+            console.error('Clerk update failed:', clerkError);
+            // Don't fail the whole flow if Clerk update fails
+          }
         }
       }
 
+      console.log('Switching to results view');
       setView('results');
     } catch (error) {
       console.error('Generation error:', error);
-      alert('Failed to generate listing. Please check your API key and try again.');
+      alert(`Failed to generate listing: ${error.message}`);
     }
   };
 
