@@ -45,6 +45,8 @@ Requirements:
 Write the listing description now:`;
 
   try {
+    console.log('Starting Anthropic API call...');
+
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -61,19 +63,22 @@ Write the listing description now:`;
       })
     });
 
+    console.log('Anthropic API response status:', response.status);
+
     if (!response.ok) {
       const error = await response.text();
       console.error('Anthropic API error:', error);
-      res.status(response.status).json({ error: 'AI generation failed' });
+      res.status(response.status).json({ error: 'AI generation failed', details: error });
       return;
     }
 
     const data = await response.json();
+    console.log('Anthropic API success');
     const listing = data.content[0].text;
 
     res.status(200).json({ listing });
   } catch (error) {
-    console.error('Error generating listing:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Error generating listing:', error.message, error.stack);
+    res.status(500).json({ error: error.message, stack: error.stack });
   }
 }
