@@ -30,14 +30,22 @@ function AppContent() {
         // If new user (no metadata set), initialize with 3 credits
         if (credits === undefined && paid === undefined) {
           try {
-            await user.update({
-              publicMetadata: {
+            const response = await fetch('/api/update-credits', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId: user.id,
                 credits: 3,
                 isPaid: false
-              }
+              }),
             });
-            setUserCredits(3);
-            setIsPaid(false);
+
+            if (response.ok) {
+              setUserCredits(3);
+              setIsPaid(false);
+              // Reload user to get updated metadata
+              await user.reload();
+            }
           } catch (error) {
             console.error('Failed to initialize user metadata:', error);
           }
@@ -98,16 +106,24 @@ function AppContent() {
         const newCredits = userCredits - 1;
         setUserCredits(newCredits);
 
-        // Update Clerk user metadata
+        // Update Clerk user metadata via API
         if (user) {
           try {
-            await user.update({
-              publicMetadata: {
+            const response = await fetch('/api/update-credits', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId: user.id,
                 credits: newCredits,
                 isPaid: false
-              }
+              }),
             });
-            console.log('Clerk metadata updated');
+
+            if (response.ok) {
+              console.log('Clerk metadata updated');
+              // Reload user to sync metadata
+              await user.reload();
+            }
           } catch (clerkError) {
             console.error('Clerk update failed:', clerkError);
             // Don't fail the whole flow if Clerk update fails
