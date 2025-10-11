@@ -1,14 +1,41 @@
+import { clerkClient } from '@clerk/clerk-sdk-node';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
     return;
   }
 
-  const { formData } = req.body;
+  const { formData, userId } = req.body;
 
   if (!formData) {
     res.status(400).json({ error: 'Missing form data' });
     return;
+  }
+
+  // Check user credits and plan tier
+  if (userId) {
+    try {
+      const user = await clerkClient.users.getUser(userId);
+      const plan = user.publicMetadata?.plan || 'free';
+      const credits = user.publicMetadata?.credits || 0;
+
+      // Agency plan has unlimited access
+      if (plan === 'agency') {
+        console.log('Agency plan: unlimited access');
+      } else if (credits <= 0) {
+        res.status(403).json({
+          error: 'No credits remaining',
+          message: plan === 'free'
+            ? 'You have used all 3 free listings this month. Upgrade to Professional for 25 listings/month or Agency for unlimited.'
+            : 'You have used all your credits this month. They will reset in your next billing cycle.'
+        });
+        return;
+      }
+    } catch (clerkError) {
+      console.error('Error checking user plan:', clerkError);
+      // Continue anyway - don't block generation if Clerk check fails
+    }
   }
 
   const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;

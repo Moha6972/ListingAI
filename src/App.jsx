@@ -19,16 +19,19 @@ function AppContent() {
   const [listing, setListing] = useState('');
   const [userCredits, setUserCredits] = useState(3);
   const [isPaid, setIsPaid] = useState(false);
+  const [userPlan, setUserPlan] = useState('free');
 
   // Initialize user credits from metadata
   useEffect(() => {
     const initializeUser = async () => {
       if (user) {
         const credits = user.publicMetadata?.credits;
-        const paid = user.publicMetadata?.isPaid;
+        const plan = user.publicMetadata?.plan;
+        const creditsLimit = user.publicMetadata?.creditsLimit;
+        const billingCycleStart = user.publicMetadata?.billingCycleStart;
 
-        // If new user (no metadata set), initialize with 3 credits
-        if (credits === undefined && paid === undefined) {
+        // If new user (no metadata set), initialize with free plan
+        if (credits === undefined || plan === undefined) {
           try {
             const response = await fetch('/api/update-credits', {
               method: 'POST',
@@ -36,13 +39,17 @@ function AppContent() {
               body: JSON.stringify({
                 userId: user.id,
                 credits: 3,
-                isPaid: false
+                isPaid: false,
+                plan: 'free',
+                creditsLimit: 3,
+                billingCycleStart: new Date().toISOString()
               }),
             });
 
             if (response.ok) {
               setUserCredits(3);
               setIsPaid(false);
+              setUserPlan('free');
               // Reload user to get updated metadata
               await user.reload();
             }
@@ -52,7 +59,28 @@ function AppContent() {
         } else {
           // Load existing metadata
           setUserCredits(credits ?? 3);
-          setIsPaid(paid ?? false);
+          setUserPlan(plan ?? 'free');
+          setIsPaid(plan === 'professional' || plan === 'agency' || user.publicMetadata?.isPaid === true);
+
+          // Check if credits need to be reset (monthly cycle)
+          try {
+            const resetResponse = await fetch('/api/reset-credits', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: user.id }),
+            });
+
+            if (resetResponse.ok) {
+              const resetData = await resetResponse.json();
+              if (resetData.creditsReset) {
+                console.log('Credits reset to:', resetData.newCredits);
+                setUserCredits(resetData.newCredits);
+                await user.reload();
+              }
+            }
+          } catch (resetError) {
+            console.error('Failed to check credit reset:', resetError);
+          }
         }
       }
     };
@@ -85,7 +113,7 @@ function AppContent() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ formData }),
+        body: JSON.stringify({ formData, userId: user?.id }),
       });
 
       console.log('API response status:', response.status);
@@ -100,8 +128,8 @@ function AppContent() {
       console.log('API success, listing received');
       setListing(data.listing);
 
-      // Deduct credit if not paid
-      if (!isPaid) {
+      // Deduct credit unless agency plan (unlimited)
+      if (userPlan !== 'agency') {
         console.log('Deducting credit...');
         const newCredits = userCredits - 1;
         setUserCredits(newCredits);
@@ -114,8 +142,7 @@ function AppContent() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 userId: user.id,
-                credits: newCredits,
-                isPaid: false
+                credits: newCredits
               }),
             });
 
@@ -196,7 +223,8 @@ function AppContent() {
       id: user.id,
       email: user.primaryEmailAddress?.emailAddress,
       credits: userCredits,
-      isPaid: isPaid
+      isPaid: isPaid,
+      plan: userPlan
     };
 
     if (view === 'pricing') {

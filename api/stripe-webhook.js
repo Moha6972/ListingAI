@@ -42,29 +42,45 @@ export default async function handler(req, res) {
     }
 
     try {
-      // Check the amount to determine which plan
-      if (session.amount_total === 7900) {
-        // $79 subscription - grant unlimited access
-        await clerkClient.users.updateUserMetadata(userId, {
-          publicMetadata: {
-            isPaid: true,
-            stripeCustomerId: session.customer,
-            subscriptionId: session.subscription,
-          },
-        });
-        console.log(`User ${userId} upgraded to unlimited plan`);
-      } else if (session.amount_total === 2900) {
-        // $29 single listing - add 1 credit
-        const user = await clerkClient.users.getUser(userId);
-        const currentCredits = user.publicMetadata?.credits || 0;
+      // Get the price ID to determine which plan
+      const priceId = session.line_items?.data?.[0]?.price?.id || session.metadata?.priceId;
 
-        await clerkClient.users.updateUserMetadata(userId, {
-          publicMetadata: {
-            credits: currentCredits + 1,
-          },
-        });
-        console.log(`User ${userId} purchased 1 listing credit`);
+      // Map price IDs to plans (you'll need to update these with your actual Stripe price IDs)
+      const PROFESSIONAL_PRICE_ID = process.env.STRIPE_PRICE_ID_PROFESSIONAL;
+      const AGENCY_PRICE_ID = process.env.STRIPE_PRICE_ID_AGENCY;
+
+      let plan, credits, creditsLimit;
+
+      if (priceId === PROFESSIONAL_PRICE_ID || session.amount_total === 1900) {
+        // $19/month Professional plan
+        plan = 'professional';
+        credits = 25;
+        creditsLimit = 25;
+        console.log(`User ${userId} upgraded to Professional plan`);
+      } else if (priceId === AGENCY_PRICE_ID || session.amount_total === 3900) {
+        // $39/month Agency plan
+        plan = 'agency';
+        credits = 999999; // Effectively unlimited
+        creditsLimit = 999999;
+        console.log(`User ${userId} upgraded to Agency plan`);
+      } else {
+        console.error('Unknown price ID:', priceId, 'amount:', session.amount_total);
+        res.status(400).json({ error: 'Unknown plan type' });
+        return;
       }
+
+      await clerkClient.users.updateUserMetadata(userId, {
+        publicMetadata: {
+          plan: plan,
+          credits: credits,
+          creditsLimit: creditsLimit,
+          isPaid: true,
+          stripeCustomerId: session.customer,
+          stripeSubscriptionId: session.subscription,
+          billingCycleStart: new Date().toISOString()
+        },
+      });
+
     } catch (error) {
       console.error('Error updating user:', error);
       res.status(500).json({ error: 'Failed to update user' });
@@ -83,13 +99,17 @@ export default async function handler(req, res) {
       const user = users.find(u => u.publicMetadata?.stripeCustomerId === customerId);
 
       if (user) {
+        // Revert to free plan
         await clerkClient.users.updateUserMetadata(user.id, {
           publicMetadata: {
+            plan: 'free',
+            credits: 3,
+            creditsLimit: 3,
             isPaid: false,
-            credits: 0,
+            billingCycleStart: new Date().toISOString()
           },
         });
-        console.log(`Subscription cancelled for user ${user.id}`);
+        console.log(`Subscription cancelled for user ${user.id} - reverted to free plan`);
       }
     } catch (error) {
       console.error('Error handling cancellation:', error);

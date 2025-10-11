@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { userId, credits, isPaid } = req.body;
+  const { userId, credits, isPaid, plan, creditsLimit, billingCycleStart, stripeCustomerId, stripeSubscriptionId } = req.body;
 
   if (!userId) {
     res.status(400).json({ error: 'Missing userId' });
@@ -14,11 +14,18 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Build metadata object with only defined values
+    const metadata = {};
+    if (credits !== undefined) metadata.credits = credits;
+    if (isPaid !== undefined) metadata.isPaid = isPaid;
+    if (plan !== undefined) metadata.plan = plan;
+    if (creditsLimit !== undefined) metadata.creditsLimit = creditsLimit;
+    if (billingCycleStart !== undefined) metadata.billingCycleStart = billingCycleStart;
+    if (stripeCustomerId !== undefined) metadata.stripeCustomerId = stripeCustomerId;
+    if (stripeSubscriptionId !== undefined) metadata.stripeSubscriptionId = stripeSubscriptionId;
+
     await clerkClient.users.updateUserMetadata(userId, {
-      publicMetadata: {
-        credits: credits !== undefined ? credits : undefined,
-        isPaid: isPaid !== undefined ? isPaid : undefined,
-      },
+      publicMetadata: metadata,
     });
 
     res.status(200).json({ success: true });

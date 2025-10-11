@@ -7,9 +7,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ListingAI is a production-ready real estate listing generator SaaS that uses Claude AI to generate professional MLS-optimized property descriptions in 30 seconds.
 
 **Business Model:**
-- $79/month unlimited subscription (primary revenue stream)
-- $29 per listing pay-as-you-go (secondary option)
-- 3 free trial listings for new users (acquisition strategy)
+- **Free Forever:** 3 listings/month (acquisition strategy)
+- **$19/month Professional:** 25 listings/month (most popular tier)
+- **$39/month Agency:** Unlimited listings + team features (5 agents)
+- All plans include premium AI quality, MLS optimization, cancel anytime
 
 **Tech Constraints:**
 - React with JavaScript ONLY (NO TypeScript) - by design for speed
@@ -50,9 +51,10 @@ Required API keys in `.env.local`:
 ### State Management & User Flow
 
 The app uses view-based routing with simple state management in `App.jsx`:
-- **Views:** `landing` → `auth` → `app` → `results`
+- **Views:** `landing` → `auth` → `pricing` → `app` → `results`
 - **User state:** Credits and paid status stored in Clerk `publicMetadata`
-- **Credits logic:** New users get 3 credits, deduct 1 per generation (if not paid)
+- **Credits logic:** New users get 3 credits/month, deduct 1 per generation (based on plan tier)
+- **Pricing page:** Dedicated view for plan selection with back button to dashboard
 
 ### Authentication Flow (Clerk)
 
@@ -86,9 +88,10 @@ The app uses view-based routing with simple state management in `App.jsx`:
 - Webhook updates Clerk metadata on successful payment
 
 **Payment flows:**
-1. **$79 subscription:** Sets `isPaid: true` → Unlimited listings
-2. **$29 one-time:** Adds 1 credit → `credits += 1`
-3. **Cancellation:** Revokes access → `isPaid: false`
+1. **$19/month Professional:** Sets tier → 25 listings/month
+2. **$39/month Agency:** Sets tier → Unlimited listings + team access
+3. **Subscription management:** Webhook updates Clerk metadata on payment events
+4. **Cancellation:** Revokes access → Reverts to free tier (3 listings/month)
 
 **Production Ready:** All webhook handlers implemented and tested.
 
@@ -98,6 +101,7 @@ The app uses view-based routing with simple state management in `App.jsx`:
 App.jsx (main container)
 ├── LandingPage - Marketing content, glassmorphism design
 ├── AuthPage - Clerk SignIn/SignUp with custom styling
+├── PricingPage - Three-tier pricing display with plan selection
 ├── ListingForm - Property input with Google Places autocomplete
 └── ResultsPage - Display generated listing, copy functionality
 ```
@@ -139,8 +143,10 @@ Script loaded in `index.html` - must replace placeholder with actual key.
 ### Credits System
 
 - Stored in `user.publicMetadata.credits` and `user.publicMetadata.isPaid`
-- Updated via Clerk SDK: `user.update({ publicMetadata: { credits: newCredits } })`
-- Check before generation: `if (!user.isPaid && user.credits <= 0)` → block/prompt upgrade
+- **Server-side updates:** Credits updated via `/api/update-credits` endpoint for persistence
+- **Tier-based logic:** Free (3/month) → Professional (25/month) → Agency (unlimited)
+- Check before generation: `if (user.credits <= 0 && !isUnlimitedPlan)` → block/prompt upgrade
+- **Critical fix:** Credits persist via Clerk API server-side (not client-side React state)
 
 ### File Structure
 
@@ -167,8 +173,11 @@ vercel.json            - API routes configuration
 2. ✅ Stripe webhooks fully implemented (/api/stripe-webhook.js)
 3. ✅ Clerk authentication configured (Email + Google OAuth)
 4. ✅ All API routes configured (vercel.json)
-5. ✅ Enhanced AI prompt for better listings
+5. ✅ Enhanced AI prompt for premium, high-converting listings
 6. ✅ Codebase cleaned (TypeScript files removed)
+7. ✅ Credits persistence fixed (server-side API updates via Clerk)
+8. ✅ Pricing page implemented with three-tier model
+9. ✅ Upgrade flow routed through pricing page
 
 ### 🔧 Remaining Setup (Vercel):
 1. Add all environment variables in Vercel dashboard
@@ -199,8 +208,10 @@ vercel.json            - API routes configuration
 **Clerk Metadata Schema:**
 ```javascript
 user.publicMetadata = {
-  credits: number,    // Remaining free listings
-  isPaid: boolean     // Subscription status
+  credits: number,        // Remaining listings this billing cycle
+  isPaid: boolean,        // Legacy field (kept for compatibility)
+  plan: string,           // 'free' | 'professional' | 'agency'
+  billingCycle: string    // Reset period for credit allocation
 }
 ```
 
@@ -221,8 +232,17 @@ user.publicMetadata = {
 ## Quick Start After Deployment
 
 1. Add all Vercel environment variables
-2. Set up Stripe webhook
+2. Set up Stripe webhook endpoint URL
 3. Add $10-20 to Anthropic Console
-4. Test: Sign up → Generate 3 free → Pay $29 → Verify credit added
-5. Test: New user → Pay $79 → Verify unlimited access
-6. Go live with production API keys
+4. **Test Free Plan:** Sign up → Generate 3 free listings → Verify credit deduction
+5. **Test Professional:** New user → Pay $19 → Verify 25 listings/month
+6. **Test Agency:** New user → Pay $39 → Verify unlimited access
+7. Go live with production API keys
+
+## Recent Updates (Last Session)
+
+- ✅ **Credits Persistence Fix:** Migrated from client-side React state to server-side Clerk API
+- ✅ **Pricing Page:** Added dedicated `/pricing` route with three-tier plan display
+- ✅ **Pricing Restructure:** Changed from $79 unlimited to tiered $19/$39 model
+- ✅ **AI Prompt Enhancement:** Upgraded prompt for premium, high-converting listings
+- ✅ **User Flow Update:** Upgrade button now routes to pricing page (not direct checkout)
